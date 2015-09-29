@@ -1,4 +1,6 @@
-// input parameter: number of images to add
+// input parameter: [u/m] [size of kernel]
+// example: >> ./hw3_b1 u 3  // uniform averaging kernel with size of 3
+// >> ./hw3_b1 m 7 // median filtering with size of 7
 
 #include <cv.h>
 #include <highgui.h>
@@ -150,15 +152,15 @@ int main(int argc, char* argv[])
    // read grayscale image
         Mat img_noisygull = imread("./noisygull.png",CV_LOAD_IMAGE_GRAYSCALE);
 
-	//	imshow("before cv", img_noisygull);
         char* flag_type  = argv[1];
 		
-		bool is_uniform= true;
+		bool is_uniform = true;
 		if(*flag_type == 'u') {
 			cout << "type:Uniform averaging kernels" << endl;
 			
 		}else if(*flag_type == 'm') {
 			cout << "type:Meidan filtering" << endl;
+			is_uniform = false;
 		}else {
 			cout <<"illegal Type " << endl;
 			return 0;
@@ -172,14 +174,20 @@ int main(int argc, char* argv[])
 
 		Mat img_noisygull_cv;
 		img_noisygull_cv.create(img_noisygull.size(),CV_8UC1);
-	 //   do_convolution (img_noisygull, img_noisygull_cv, mask1);
-		do_median(img_noisygull, img_noisygull_cv, k_size);
 
-	//	print_content(img_noisygull_cv);
+		if(is_uniform)
+		{
+			 do_convolution (img_noisygull, img_noisygull_cv, mask1);
+	
+		}else
+		{
+			do_median(img_noisygull, img_noisygull_cv, k_size);
+		}
 
-		imshow("before cv2", img_noisygull);
+		imshow("original image", img_noisygull);
 
-		imshow("after cv",img_noisygull_cv);
+
+		imshow("after smoothing",img_noisygull_cv);
 
 
 
