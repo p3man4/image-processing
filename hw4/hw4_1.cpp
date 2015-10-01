@@ -1,6 +1,7 @@
-// input parameter: [u/m] [size of kernel]
-// example: >> ./hw3_b1 u 3  // uniform averaging kernel with size of 3
-// >> ./hw3_b1 m 7 // median filtering with size of 7
+// input parameter: [u/m] [size of kernel] or [s]
+// example: >> ./hw4 u 3  // uniform averaging kernel with size of 3
+// >> ./hw4 m 7 // median filtering with size of 7
+// >> ./hw4_1 s // apply soble kernel
 
 #include <cv.h>
 #include <highgui.h>
@@ -9,10 +10,15 @@
 #include <cstdlib> // atoi
 #include <algorithm> // sort
 #include <gflags/gflags.h>
+
 #define histo_size 300
+enum Kernel_type {Uniform, Median, Sobel};
 
 using namespace cv;
 using namespace std;
+
+int [3][3] sobel_x = { { -1, 0, 1 } , { -2, 0, 2 } , { -1 ,0, 1} };
+int [3][3] sobel_y = { { -1, -2, -1 } , { 0, 0, 0 } , { 1 ,2, 1} };
 
 void print_content(Mat& img_gray)
 {
@@ -146,37 +152,48 @@ int main(int argc, char* argv[])
 {
 
    // read grayscale image
-        Mat img_noisygull = imread("./noisygull.png",CV_LOAD_IMAGE_GRAYSCALE);
+        Mat img_input = imread("./2D_White_Box.pgm",CV_LOAD_IMAGE_GRAYSCALE);
 
         char* flag_type  = argv[1];
 
-		bool is_uniform = true;
+		Kernel_type ktype;
+                int k_size=1; // default kernel size
 		if(*flag_type == 'u') {
 			cout << "type:Uniform averaging kernels" << endl;
-
-		}else if(*flag_type == 'm') {
+                        k_size = atoi(argv[2]); // kernel size
+		        ktype = Kernel_type.Uniform;
+                }else if(*flag_type == 'm') {
 			cout << "type:Meidan filtering" << endl;
+                        k_size = atoi(argv[2]); // kernel size
+			ktype  = Kernel_type.Median;
+		}else if(*flag_type == 's') {
+			cout << "type:sobel filtering" << endl;
 			is_uniform = false;
+                        k_size =3; // kernel size is fixed
+                        ktype = Kernel_type.Sobel;
 		}else {
 			cout <<"illegal Type " << endl;
 			return 0;
 		}
 
-		int k_size = atoi(argv[2]); // kernel size
+		//Mat mask1 = Mat::ones(k_size,k_size,CV_8UC1);
 
-		Mat mask1 = Mat::ones(k_size,k_size,CV_8UC1);
+		Mat img_input_cv;
+		img_input_cv.create(img_input.size(),CV_8UC1);
 
-		Mat img_noisygull_cv;
-		img_noisygull_cv.create(img_noisygull.size(),CV_8UC1);
-
-		if(is_uniform)
+		if(ktype == Kernel_type.Uniform)
 		{
-			 do_convolution (img_noisygull, img_noisygull_cv, mask1);
+		        Mat mask1 = Mat::ones(k_size,k_size,CV_8UC1);
+                        do_convolution (img_input, img_input_cv, mask1);
 
+		}else if(ktype == Kernel_type.Median)
+		{
+			do_median(img_input, img_input_cv, k_size);
 		}else
-		{
-			do_median(img_noisygull, img_noisygull_cv, k_size);
-		}
+                {
+                        Mat sobel_mat_x= Mat(3,3, CV_16F,sobel_x).inv();
+                        Mat soble_mat_y = Mat(3,3, CV_16F, sobel_y).inv();
+                }
 
 		imshow("original image", img_noisygull);
 
